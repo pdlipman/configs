@@ -1,0 +1,22 @@
+#!/bin/sh
+# Redirect output to stderr.
+exec 1>&2
+# enable user input
+exec < /dev/tty
+
+# regexfor  debugger, console.info or console.log
+consoleregexp='\+.*(debugger|console\.(info|log))'
+
+# CHECK
+if test $(git diff --cached | grep -n -E $consoleregexp | wc -l) != 0
+then 
+  exec git diff --cached | grep -n -E $consoleregexp
+  read -p "There are occurrences of developer test code in your commit. Continue? (y/N)" yn
+  echo $yn | grep ^[Yy]$
+  if [ $? -eq 0 ] 
+  then
+    exit 0; # continue
+  else
+    exit 1; # rollback
+  fi
+fi
